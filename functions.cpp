@@ -2,6 +2,12 @@
 
 void modifyROI(const cv::Size imgSize, cv::Rect &rect)
 {
+    if(rect.x > imgSize.width-1 || rect.y > imgSize.height-1)
+    {
+        rect = cv::Rect();
+        return;
+    }
+    
     if(rect.x < 0)
         rect.x = 0;
     if(rect.y < 0)
