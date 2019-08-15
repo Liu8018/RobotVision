@@ -41,17 +41,30 @@ void RobotEyes::output()
     std::vector<std::array<cv::Rect,2>> faceRectPairs;
     processPair(m_frameL,m_frameR,faceRects_l,faceRectPairs);
     
+    //计算距离
+    std::vector<float> dists(faceRectPairs.size());
+    for(size_t i=0;i<faceRectPairs.size();i++)
+    {
+        float dist = std::abs(faceRectPairs[i][0].x - faceRectPairs[i][1].x);
+        dist = 1/dist;
+        dist *= 20;
+        
+        dists[i] = dist;
+    }
+    
     //test
     cv::Mat frameR_test = m_frameR.clone();
     for(size_t i=0;i<faceRectPairs.size();i++)
     {
         cv::rectangle(frameR_test,faceRectPairs[i][1],cv::Scalar(255,0,0),2);
+        
         cv::putText(frameR_test,genders[i],faceRectPairs[i][1].tl(),1,1,cv::Scalar(0,255,0));
+        
         std::string ageText = std::to_string(ages[i][0]) + "-" + std::to_string(ages[i][1]);
         cv::putText(frameR_test,ageText,faceRectPairs[i][1].br(),1,1,cv::Scalar(0,0,255));
         
-        int dist = std::abs(faceRectPairs[i][0].x - faceRectPairs[i][1].x);
-        cv::putText(frameR_test,std::to_string(dist),cv::Point(faceRectPairs[i][1].x,faceRectPairs[i][1].br().y),1,1,cv::Scalar(200,100,220));
+        cv::putText(frameR_test,std::to_string(dists[i]).substr(0,4),
+                    cv::Point(faceRectPairs[i][1].x,faceRectPairs[i][1].br().y),1,1,cv::Scalar(200,100,220));
     }
     cv::namedWindow("frame_r",0);
     cv::imshow("frame_r",frameR_test);
