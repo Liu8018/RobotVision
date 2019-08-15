@@ -49,6 +49,9 @@ void RobotEyes::output()
         cv::putText(frameR_test,genders[i],faceRectPairs[i][1].tl(),1,1,cv::Scalar(0,255,0));
         std::string ageText = std::to_string(ages[i][0]) + "-" + std::to_string(ages[i][1]);
         cv::putText(frameR_test,ageText,faceRectPairs[i][1].br(),1,1,cv::Scalar(0,0,255));
+        
+        int dist = std::abs(faceRectPairs[i][0].x - faceRectPairs[i][1].x);
+        cv::putText(frameR_test,std::to_string(dist),cv::Point(faceRectPairs[i][1].x,faceRectPairs[i][1].br().y),1,1,cv::Scalar(200,100,220));
     }
     cv::namedWindow("frame_r",0);
     cv::imshow("frame_r",frameR_test);
