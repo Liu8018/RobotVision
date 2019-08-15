@@ -89,12 +89,20 @@ void RobotEyes::processPair(const cv::Mat &frameL, const cv::Mat &frameR,
     for(size_t i=0;i<faceRects_l.size();i++)
     {
         cv::Mat target = frameL(faceRects_l[i]);
+        int targetCols = target.cols;
+        int targetRows = target.rows;
         
         //根据left faceRect的上下界在右帧取rowRange(适当扩充上下界)
         int eh = 8;
         int lowLimit = faceRects_l[i].y-eh<0? 0:faceRects_l[i].y-eh;
         int highLimit = faceRects_l[i].br().y+eh>frameR.rows? frameR.rows:faceRects_l[i].br().y+eh;
         cv::Mat image = frameR.rowRange(lowLimit,highLimit);
+        
+        //适当缩小target和image，加速运算
+        int resizeRows = 20;
+        float resizeRatio = resizeRows/(float)image.rows;
+        cv::resize(target,target,cv::Size(),resizeRatio,resizeRatio);
+        cv::resize(image,image,cv::Size(),resizeRatio,resizeRatio);
         
         //模板匹配
         cv::Mat matchResult;
@@ -105,11 +113,14 @@ void RobotEyes::processPair(const cv::Mat &frameL, const cv::Mat &frameR,
         cv::minMaxLoc( matchResult, &minVal, &maxVal, &minLoc, &maxLoc, cv::Mat() );
         matchLoc = minLoc;
         
+        //变换回原坐标系
+        matchLoc.x /= resizeRatio;
+        matchLoc.y /= resizeRatio;
         matchLoc.y += lowLimit;
         
         std::array<cv::Rect,2> rectPair;
         rectPair[0] = faceRects_l[i];
-        rectPair[1] = cv::Rect(matchLoc, cv::Size(target.cols, target.rows));
+        rectPair[1] = cv::Rect(matchLoc, cv::Size(targetCols, targetRows));
         faceRectPairs.push_back(rectPair);
         
         /*
